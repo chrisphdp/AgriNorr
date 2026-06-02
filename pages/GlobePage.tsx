@@ -16,7 +16,7 @@ export const GlobePage: React.FC = () => {
     const cesiumContainer = useRef<HTMLDivElement>(null);
     const viewerRef = useRef<any>(null);
     const activeImageryLayers = useRef<any[]>([]);
-    const { parcels } = useParcels();
+    const { parcels, updateParcel } = useParcels();
     
     const [cesiumLoaded, setCesiumLoaded] = useState(false);
     const [isCesiumReady, setIsCesiumReady] = useState(false);
@@ -258,8 +258,20 @@ export const GlobePage: React.FC = () => {
                 const layerPromises = parcels.map(async (p) => {
                     if (!p.boundary) return null;
                     try {
-                        const result = await fetchGeeLayer(activeLayer, p.boundary, backendUrl);
-                        const tileUrl = result?.tile_url || (result as any);
+                        let tileUrl = '';
+                        
+                        // Check if cached layer exists and is less than 7 days old
+                        if (p.geeLayers && p.geeLayers[activeLayer] && (Date.now() - p.geeLayers[activeLayer].timestamp < 7 * 24 * 60 * 60 * 1000) && !isOffline) {
+                            tileUrl = p.geeLayers[activeLayer].url;
+                        } else {
+                            const result = await fetchGeeLayer(activeLayer, p.boundary, backendUrl);
+                            tileUrl = result?.tile_url || (result as any);
+                            
+                            if (tileUrl && typeof tileUrl === 'string') {
+                                const newGeeLayers = { ...(p.geeLayers || {}), [activeLayer]: { url: tileUrl, timestamp: Date.now() } };
+                                updateParcel(p.id, { geeLayers: newGeeLayers }).catch(e => console.warn("Caching layer failed:", e));
+                            }
+                        }
                         
                         if (tileUrl && typeof tileUrl === 'string') {
                             const imageryProvider = new window.Cesium.UrlTemplateImageryProvider({
@@ -297,8 +309,13 @@ export const GlobePage: React.FC = () => {
         
         const height = getParcelBoundingHeight(parcel);
         
+        // Offset latitude southward so that tilting -0.6 rad looks exactly at the center
+        // Horizontal distance = height / tan(0.6)
+        const distanceToOffset = height / Math.tan(0.6);
+        const latOffset = distanceToOffset / 111320; // roughly meters to degrees latitude
+        
         viewerRef.current.camera.flyTo({
-            destination: window.Cesium.Cartesian3.fromDegrees(center.lng, center.lat, height),
+            destination: window.Cesium.Cartesian3.fromDegrees(center.lng, center.lat - latOffset, height),
             orientation: {
                 heading: 0.0,
                 pitch: -0.6, // Slight tilt (approx -34 degrees) for a beautiful 3D perspective
