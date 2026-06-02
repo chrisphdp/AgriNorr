@@ -27,7 +27,7 @@ export const GlobePage: React.FC = () => {
         (localStorage.getItem('globe_map_source') as 'cesium' | 'google') || 'cesium'
     );
     const [isMapSourceSwitching, setIsMapSourceSwitching] = useState(false);
-    const [googleApiKey, setGoogleApiKey] = useState(localStorage.getItem('google_maps_api_key') || '');
+    const [googleApiKey, setGoogleApiKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || localStorage.getItem('google_maps_api_key') || '');
     const [showKeyPrompt, setShowKeyPrompt] = useState(false);
 
     const isOffline = localStorage.getItem('gee_simulation_mode') === 'true';
