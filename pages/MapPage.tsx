@@ -466,67 +466,68 @@ export const MapPage: React.FC = () => {
       />
 
       {/* LEFT COLUMN: MAP CONTAINER */}
-      <div className="flex-1 flex flex-col bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden min-h-[500px]">
+      <div className="flex-1 flex flex-col bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden min-h-[400px] md:min-h-[500px]">
         {/* Map Toolbar */}
-        <div className="h-14 border-b border-gray-100 flex items-center justify-between px-4 bg-gray-50/50">
+        <div className="min-h-[56px] py-3 md:py-0 border-b border-gray-100 flex flex-col md:flex-row items-center justify-between px-4 bg-gray-50/50 gap-3">
           
           {/* Map View Toggles */}
-          <div className="flex bg-gray-200 p-1 rounded-lg">
+          <div className="flex bg-gray-200 p-1 rounded-lg w-full md:w-auto justify-center">
             <button
                 onClick={() => setMapType('hybrid')}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${mapType === 'hybrid' ? 'bg-white text-emerald-800 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                className={`flex-1 md:flex-none px-3 py-1.5 md:py-1 text-xs font-semibold rounded-md transition-all ${mapType === 'hybrid' ? 'bg-white text-emerald-800 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
             >
                 Satellite
             </button>
             <button
                 onClick={() => setMapType('roadmap')}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${mapType === 'roadmap' ? 'bg-white text-emerald-800 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                className={`flex-1 md:flex-none px-3 py-1.5 md:py-1 text-xs font-semibold rounded-md transition-all ${mapType === 'roadmap' ? 'bg-white text-emerald-800 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
             >
-                Map
+                Google Map
             </button>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-center w-full md:w-auto">
             {canEdit ? (
               <>
                 <button 
                   onClick={clearMap}
                   disabled={status !== 'success' || area === '0.00'}
-                  className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                  className="p-1.5 md:p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
                   title="Clear Map"
                 >
                   <Trash2 size={18} />
                 </button>
                 
-                <div className="h-6 w-px bg-gray-300 mx-1"></div>
+                <div className="h-6 w-px bg-gray-300 mx-0.5 md:mx-1 hidden md:block"></div>
                 
                 <button 
                     onClick={triggerFileUpload}
                     disabled={status !== 'success' || isUploading}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    className="flex-1 md:flex-none justify-center flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-colors bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                     title="Upload Shapefile (.zip) or KML"
                 >
-                    {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                    {isUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                     Upload
                 </button>
 
                 <button 
                   onClick={toggleDrawing}
                   disabled={status !== 'success'}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex-1 md:flex-none justify-center flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-colors ${
                     isDrawing 
                       ? 'bg-emerald-600 text-white shadow-sm' 
                       : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  <PenTool size={16} />
-                  {isDrawing ? 'Cancel Drawing' : 'Draw Field'}
+                  <PenTool size={14} />
+                  {isDrawing ? 'Cancel' : 'Draw'}
                 </button>
               </>
             ) : (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-50 text-gray-400 border border-gray-200">
-                  <Lock size={16} />
-                  <span>View Only (Administrator access required to draw)</span>
+                <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium bg-gray-50 text-gray-400 border border-gray-200 w-full text-center">
+                  <Lock size={14} />
+                  <span className="hidden md:inline">View Only (Administrator access required to draw)</span>
+                  <span className="md:hidden">Read Only Mode</span>
                 </div>
             )}
           </div>

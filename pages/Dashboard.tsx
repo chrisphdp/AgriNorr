@@ -130,10 +130,10 @@ export const Dashboard: React.FC = () => {
         </div>
       )}
 
-      <div className="flex-1 flex bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+      <div className="flex-1 flex flex-col md:flex-row bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm min-h-0">
         {/* Left Panel: List of Fields */}
-        <div className="w-80 border-r border-gray-200 flex flex-col bg-white flex-shrink-0">
-          <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+        <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col bg-white flex-shrink-0 max-h-80 md:max-h-none">
+          <div className="p-4 md:p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
             <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
             {canEdit ? (
               <button 
@@ -197,7 +197,7 @@ export const Dashboard: React.FC = () => {
                         <p className="text-xs text-gray-500 truncate mt-0.5 mb-1.5">
                           {parcel.crop} • {parcel.size} ha
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center flex-wrap gap-2">
                            {parcel.dynamicStatus && (
                               <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-full ${
                                   parcel.dynamicStatus === 'Healthy' ? 'bg-emerald-100 text-emerald-700' :
@@ -228,33 +228,34 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
           
-          <div className="p-3 border-t border-gray-100 bg-gray-50 text-xs text-center text-gray-400">
+          <div className="p-3 border-t border-gray-100 bg-gray-50 text-xs text-center text-gray-400 flex-shrink-0">
             {parcels.length} {parcels.length === 1 ? 'Field' : 'Fields'} Total
           </div>
         </div>
 
         {/* Right Panel: Overview Insights */}
-        <div className="flex-1 bg-gray-50/30 p-8 overflow-y-auto">
+        <div className="flex-1 bg-gray-50/30 p-4 md:p-8 overflow-y-auto w-full">
           <div className="max-w-4xl mx-auto space-y-6">
-            <div className="flex justify-between items-end mb-8">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-4 mb-6 md:mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                  {t('welcome.back')}, {profile?.firstName || profile?.employeeId || currentUser?.email?.split('@')[0] || 'Operator'} <span className="text-xs ml-2 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full uppercase tracking-wide border border-gray-200">{roleName}</span>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 flex items-center flex-wrap gap-2">
+                  <span>{t('welcome.back')}, {profile?.firstName || profile?.employeeId || currentUser?.email?.split('@')[0] || 'Operator'}</span>
+                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full uppercase tracking-wide border border-gray-200">{roleName}</span>
                 </h2>
-                <p className="text-gray-500">
+                <p className="text-sm text-gray-500">
                   Select a field from the list or explore your farm overview.
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-2 md:gap-3">
                 <button 
                   onClick={() => navigate('/map')}
-                  className="px-4 py-2 bg-emerald-800 text-white rounded-lg text-sm font-medium hover:bg-emerald-900 transition-colors shadow-sm"
+                  className="px-3 py-2 md:px-4 md:py-2 bg-emerald-800 text-white rounded-lg text-xs md:text-sm font-medium hover:bg-emerald-900 transition-colors shadow-sm flex-1 sm:flex-none text-center"
                 >
-                  Go to Map View
+                  Map View
                 </button>
                 <button 
                   onClick={() => navigate('/globe')}
-                  className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
+                  className="px-3 py-2 md:px-4 md:py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs md:text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm flex-1 sm:flex-none text-center"
                 >
                   Explore in 3D
                 </button>

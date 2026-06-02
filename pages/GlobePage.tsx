@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useParcels, Parcel } from '../context/ParcelContext';
-import { Compass, Locate, MousePointer2, MapPin, Layers, Loader2, AlertTriangle, RefreshCw, Zap } from 'lucide-react';
+import { Compass, Locate, MousePointer2, MapPin, Layers, Loader2, AlertTriangle, RefreshCw, Zap, Globe } from 'lucide-react';
 import { getBackendUrl, fetchGeeLayer } from '../utils/geeService';
 
 declare global {
@@ -23,6 +23,12 @@ export const GlobePage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [activeLayer, setActiveLayer] = useState<AnalysisLayer>('none');
     const [loadingLayer, setLoadingLayer] = useState(false);
+    const [mapSource, setMapSource] = useState<'cesium' | 'google'>(
+        (localStorage.getItem('globe_map_source') as 'cesium' | 'google') || 'cesium'
+    );
+    const [isMapSourceSwitching, setIsMapSourceSwitching] = useState(false);
+    const [googleApiKey, setGoogleApiKey] = useState(localStorage.getItem('google_maps_api_key') || '');
+    const [showKeyPrompt, setShowKeyPrompt] = useState(false);
 
     const isOffline = localStorage.getItem('gee_simulation_mode') === 'true';
 
@@ -129,14 +135,10 @@ export const GlobePage: React.FC = () => {
             window.Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxOTZhN2M5Mi0wMjE0LTQ4NzEtOWJiMC1mNmIzM2MxMDQ3YTYiLCJpZCI6MzY5MTU4LCJpYXQiOjE3NjU1NDE1NTR9.WbGORKlqdnNJOWekIdOZDul1E0bow0viBJR7bPtcsdM";
 
             try {
-                const terrainProvider = await window.Cesium.createWorldTerrainAsync();
-                if (!isMounted) return;
-                
-                const viewer = new window.Cesium.Viewer(cesiumContainer.current, {
-                    terrainProvider: terrainProvider,
+                let viewerOptions: any = {
                     animation: false,
                     timeline: false,
-                    baseLayerPicker: true, 
+                    baseLayerPicker: mapSource === 'cesium', // Disable baselayer picker for Google to avoid clashes
                     geocoder: true, 
                     homeButton: true,
                     sceneModePicker: true,
@@ -145,10 +147,27 @@ export const GlobePage: React.FC = () => {
                     infoBox: false, 
                     selectionIndicator: true,
                     msaaSamples: 4
-                });
+                };
 
-                const buildingsTileset = await window.Cesium.createOsmBuildingsAsync();
-                viewer.scene.primitives.add(buildingsTileset);
+                if (mapSource === 'cesium') {
+                    viewerOptions.terrainProvider = await window.Cesium.createWorldTerrainAsync();
+                } else if (googleApiKey) {
+                    window.Cesium.GoogleMaps.defaultApiKey = googleApiKey;
+                }
+
+                if (!isMounted) return;
+                
+                const viewer = new window.Cesium.Viewer(cesiumContainer.current, viewerOptions);
+
+                if (mapSource === 'cesium') {
+                    const buildingsTileset = await window.Cesium.createOsmBuildingsAsync();
+                    viewer.scene.primitives.add(buildingsTileset);
+                } else {
+                    const googleTileset = await window.Cesium.createGooglePhotorealistic3DTileset();
+                    viewer.scene.primitives.add(googleTileset);
+                    viewer.scene.globe.show = false; // Hide base globe to prevent clipping through higher-res 3D tiles
+                }
+                
                 viewer.scene.globe.depthTestAgainstTerrain = true;
                 viewer.scene.globe.maximumScreenSpaceError = 1.3; // Refine terrain and imagery sooner to load high-res orthophotos at further distances
                 
@@ -174,7 +193,13 @@ export const GlobePage: React.FC = () => {
                 setCesiumLoaded(true);
             } catch (e: any) {
                 if (!isMounted) return;
-                setError(e.message || "Failed to initialize 3D Globe.");
+                if (mapSource === 'google') {
+                    setError("Failed to load Google 3D Tiles. Please check your API key.");
+                    setMapSource('cesium');
+                    localStorage.setItem('globe_map_source', 'cesium');
+                } else {
+                    setError(e.message || "Failed to initialize 3D Globe.");
+                }
             }
         };
 
@@ -184,9 +209,10 @@ export const GlobePage: React.FC = () => {
             if (viewerRef.current) {
                 viewerRef.current.destroy();
                 viewerRef.current = null;
+                setCesiumLoaded(false);
             }
         };
-    }, [isCesiumReady]);
+    }, [isCesiumReady, mapSource, googleApiKey]);
 
     // 3. Render Parcel Outlines & Labels
     useEffect(() => {
@@ -358,23 +384,23 @@ export const GlobePage: React.FC = () => {
 
            {cesiumLoaded && (
                <>
-                   {/* Left Panel: Unified GIS Sidebar (Wider) */}
-                   <div className="absolute top-4 left-4 z-10 max-h-[calc(100%-8rem)] flex flex-col gap-4 overflow-y-auto no-scrollbar pb-4">
+                   {/* Left Panel: Unified GIS Sidebar */}
+                   <div className="absolute top-2 left-2 md:top-4 md:left-4 z-10 max-h-[calc(100%-8rem)] flex flex-col gap-3 md:gap-4 overflow-y-auto no-scrollbar pb-4 w-[calc(100%-1rem)] max-w-[280px] md:w-72 pointer-events-none">
                        
                        {/* My Holdings Box */}
-                       <div className="bg-white/90 backdrop-blur p-5 rounded-xl shadow-lg border border-gray-200 w-72 flex-shrink-0">
-                           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                       <div className="bg-white/90 backdrop-blur p-4 md:p-5 rounded-xl shadow-lg border border-gray-200 pointer-events-auto flex-shrink-0">
+                           <h3 className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 md:mb-4 flex items-center gap-2">
                                <MapPin size={16} className="text-emerald-600"/> My Holdings
                            </h3>
                            {parcels.length === 0 ? (
                                <p className="text-xs text-gray-500 italic">No fields defined yet.</p>
                            ) : (
-                               <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+                               <div className="space-y-1.5 max-h-40 md:max-h-60 overflow-y-auto pr-1">
                                    {parcels.map(p => (
                                        <button 
                                            key={p.id}
                                            onClick={() => flyToParcel(p)}
-                                           className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors flex items-center justify-between group"
+                                           className="w-full text-left px-3 py-2 md:px-4 md:py-2.5 text-xs font-semibold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors flex items-center justify-between group"
                                        >
                                            <span className="truncate">{p.name}</span>
                                            <Locate size={14} className="opacity-0 group-hover:opacity-100 transition-opacity"/>
@@ -384,9 +410,9 @@ export const GlobePage: React.FC = () => {
                            )}
                        </div>
 
-                       {/* Analysis Layers Box (Wider) */}
-                       <div className="bg-white/90 backdrop-blur p-5 rounded-xl shadow-lg border border-gray-200 w-72 flex-shrink-0">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                       {/* Analysis Layers Box */}
+                       <div className="bg-white/90 backdrop-blur p-4 md:p-5 rounded-xl shadow-lg border border-gray-200 pointer-events-auto flex-shrink-0">
+                            <h3 className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 md:mb-4 flex items-center gap-2">
                                 <Layers size={16} className="text-emerald-600"/> Analysis Layers
                             </h3>
                             <div className="space-y-1.5">
@@ -395,7 +421,7 @@ export const GlobePage: React.FC = () => {
                                         key={layer.id}
                                         onClick={() => setActiveLayer(layer.id)}
                                         disabled={isOffline && layer.id !== 'none'}
-                                        className={`w-full text-left px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-between group ${
+                                        className={`w-full text-left px-3 py-2 md:px-4 md:py-2.5 text-[11px] md:text-xs font-semibold rounded-lg transition-all flex items-center justify-between group ${
                                             activeLayer === layer.id 
                                             ? 'bg-emerald-600 text-white' 
                                             : 'text-gray-600 hover:bg-gray-50'
@@ -407,17 +433,91 @@ export const GlobePage: React.FC = () => {
                                 ))}
                             </div>
                             {isOffline && (
-                                <div className="mt-4 p-3 bg-amber-50 rounded border border-amber-100 flex items-center gap-3 text-xs text-amber-700 leading-tight">
-                                    <Zap size={16} className="flex-shrink-0" />
+                                <div className="mt-3 md:mt-4 p-2 md:p-3 bg-amber-50 rounded border border-amber-100 flex items-center gap-2 md:gap-3 text-[10px] md:text-xs text-amber-700 leading-tight">
+                                    <Zap size={14} className="flex-shrink-0 md:w-4 md:h-4" />
                                     <span>Analysis requires active backend connection.</span>
                                 </div>
                             )}
                         </div>
+
+                        {/* Base Map Settings Box */}
+                        <div className="bg-white/90 backdrop-blur p-4 md:p-5 rounded-xl shadow-lg border border-gray-200 pointer-events-auto flex-shrink-0">
+                             <h3 className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 md:mb-4 flex items-center gap-2">
+                                 <Globe size={16} className="text-emerald-600"/> Base Map Source
+                             </h3>
+                             <div className="space-y-1 md:space-y-1.5 flex flex-col sm:flex-row bg-gray-100 p-1 rounded-lg">
+                                 <button
+                                     onClick={() => {
+                                         setMapSource('cesium');
+                                         localStorage.setItem('globe_map_source', 'cesium');
+                                     }}
+                                     className={`flex-1 px-2 py-1.5 md:py-2 text-[10px] md:text-[11px] font-bold rounded-md transition-all ${mapSource === 'cesium' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                 >
+                                     Standard (OSM)
+                                 </button>
+                                 <button
+                                     onClick={() => {
+                                         if (!googleApiKey) {
+                                             setShowKeyPrompt(true);
+                                         } else {
+                                             setMapSource('google');
+                                             localStorage.setItem('globe_map_source', 'google');
+                                         }
+                                     }}
+                                     className={`flex-1 px-2 py-1.5 md:py-2 text-[10px] md:text-[11px] font-bold rounded-md transition-all ${mapSource === 'google' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                 >
+                                     Google 3D Tiles
+                                 </button>
+                             </div>
+                             {isMapSourceSwitching && (
+                                <div className="mt-2 md:mt-3 p-2 bg-emerald-50 rounded flex items-center justify-center gap-2 text-[10px] text-emerald-700 font-bold">
+                                    <RefreshCw size={12} className="animate-spin" /> Reloading Globe...
+                                </div>
+                             )}
+                        </div>
                    </div>
 
+                   {/* Google API Key Prompt Overlay */}
+                   {showKeyPrompt && (
+                       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                           <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm animate-in zoom-in-95 duration-200">
+                               <h3 className="font-bold text-lg mb-2 text-gray-900">Google Maps API Key</h3>
+                               <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+                                   Photorealistic 3D Tiles require a Google Maps Platform API key with the <strong>Map Tiles API</strong> enabled.
+                               </p>
+                               <input 
+                                   type="password"
+                                   placeholder="AIzaSy..."
+                                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none font-mono text-sm mb-4"
+                                   value={googleApiKey}
+                                   onChange={e => setGoogleApiKey(e.target.value)}
+                               />
+                               <div className="flex gap-3 justify-end">
+                                   <button 
+                                       onClick={() => setShowKeyPrompt(false)}
+                                       className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                   >
+                                       Cancel
+                                   </button>
+                                   <button 
+                                       onClick={() => {
+                                           localStorage.setItem('google_maps_api_key', googleApiKey);
+                                           setShowKeyPrompt(false);
+                                           setMapSource('google');
+                                           localStorage.setItem('globe_map_source', 'google');
+                                       }}
+                                       className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition-colors"
+                                   >
+                                       Save & Apply
+                                   </button>
+                               </div>
+                           </div>
+                       </div>
+                   )}
+
                    {/* Bottom Right Panel: Interaction Helper */}
-                   <div className="absolute bottom-6 right-6 z-10 flex flex-col gap-4">
-                        <div className="bg-black/70 backdrop-blur-md p-4 rounded-xl text-white text-[11px] shadow-2xl border border-white/10 w-64 animate-in slide-in-from-right-4 duration-500">
+                   <div className="hidden md:flex absolute bottom-6 right-6 z-10 flex-col gap-4 pointer-events-none">
+                        <div className="bg-black/70 backdrop-blur-md p-4 rounded-xl text-white text-[11px] shadow-2xl border border-white/10 w-64 animate-in slide-in-from-right-4 duration-500 pointer-events-auto">
                             <h4 className="font-bold mb-3 flex items-center gap-2 text-emerald-400 uppercase tracking-widest">
                                 <MousePointer2 size={14} /> Navigation Guide
                             </h4>
@@ -431,37 +531,37 @@ export const GlobePage: React.FC = () => {
 
                    {/* Legend Overlay (Repositioned to not clash with larger sidebar) */}
                    {activeLayer !== 'none' && !isOffline && (
-                        <div className="absolute bottom-6 left-[20rem] z-10 bg-white/90 backdrop-blur px-5 py-4 rounded-xl shadow-2xl border border-gray-200 animate-in slide-in-from-bottom-4 duration-500">
-                            <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <div className="absolute bottom-4 inset-x-4 md:bottom-6 md:left-[20rem] md:inset-x-auto z-10 bg-white/90 backdrop-blur px-4 py-3 md:px-5 md:py-4 rounded-xl shadow-2xl border border-gray-200 animate-in slide-in-from-bottom-4 duration-500 overflow-x-auto pointer-events-auto">
+                            <div className="text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 md:mb-3 flex items-center gap-2 min-w-max">
                                 <Layers size={14} /> {activeLayer} Index Reference
                             </div>
-                            <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-4 md:gap-6 min-w-max">
                                 {activeLayer === 'ndvi' && (
                                     <>
-                                        <div className="flex flex-col items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-[#a1662f] shadow-sm"></div><span className="text-[10px] font-bold">0.0</span></div>
-                                        <div className="flex flex-col items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-[#eab308] shadow-sm"></div><span className="text-[10px] font-bold">0.3</span></div>
-                                        <div className="flex flex-col items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-[#84cc16] shadow-sm"></div><span className="text-[10px] font-bold">0.6</span></div>
-                                        <div className="flex flex-col items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-[#22c55e] shadow-sm"></div><span className="text-[10px] font-bold">0.9</span></div>
+                                        <div className="flex flex-col items-center gap-1"><div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-[#a1662f] shadow-sm"></div><span className="text-[9px] md:text-[10px] font-bold">0.0</span></div>
+                                        <div className="flex flex-col items-center gap-1"><div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-[#eab308] shadow-sm"></div><span className="text-[9px] md:text-[10px] font-bold">0.3</span></div>
+                                        <div className="flex flex-col items-center gap-1"><div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-[#84cc16] shadow-sm"></div><span className="text-[9px] md:text-[10px] font-bold">0.6</span></div>
+                                        <div className="flex flex-col items-center gap-1"><div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-[#22c55e] shadow-sm"></div><span className="text-[9px] md:text-[10px] font-bold">0.9</span></div>
                                     </>
                                 )}
                                 {activeLayer === 'ndmi' && (
                                     <>
-                                        <div className="flex flex-col items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-[#caf0f8] shadow-sm"></div><span className="text-[10px] font-bold">Dry</span></div>
-                                        <div className="flex flex-col items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-[#0077b6] shadow-sm"></div><span className="text-[10px] font-bold">Wet</span></div>
-                                        <div className="flex flex-col items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-[#03045e] shadow-sm"></div><span className="text-[10px] font-bold">Water</span></div>
+                                        <div className="flex flex-col items-center gap-1"><div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-[#caf0f8] shadow-sm"></div><span className="text-[9px] md:text-[10px] font-bold">Dry</span></div>
+                                        <div className="flex flex-col items-center gap-1"><div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-[#0077b6] shadow-sm"></div><span className="text-[9px] md:text-[10px] font-bold">Wet</span></div>
+                                        <div className="flex flex-col items-center gap-1"><div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-[#03045e] shadow-sm"></div><span className="text-[9px] md:text-[10px] font-bold">Water</span></div>
                                     </>
                                 )}
                                 {activeLayer === 'lst' && (
                                     <>
-                                        <div className="flex flex-col items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-blue-500 shadow-sm"></div><span className="text-[10px] font-bold">Cold</span></div>
-                                        <div className="flex flex-col items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-yellow-400 shadow-sm"></div><span className="text-[10px] font-bold">Mild</span></div>
-                                        <div className="flex flex-col items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-red-500 shadow-sm"></div><span className="text-[10px] font-bold">Hot</span></div>
+                                        <div className="flex flex-col items-center gap-1"><div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-blue-500 shadow-sm"></div><span className="text-[9px] md:text-[10px] font-bold">Cold</span></div>
+                                        <div className="flex flex-col items-center gap-1"><div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-yellow-400 shadow-sm"></div><span className="text-[9px] md:text-[10px] font-bold">Mild</span></div>
+                                        <div className="flex flex-col items-center gap-1"><div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-red-500 shadow-sm"></div><span className="text-[9px] md:text-[10px] font-bold">Hot</span></div>
                                     </>
                                 )}
                                 {(activeLayer === 'ndre' || activeLayer === 'lai') && (
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-2.5 w-32 rounded-full bg-gradient-to-r from-[#a1662f] via-[#facc15] to-[#15803d] shadow-inner"></div>
-                                        <span className="text-[10px] font-bold text-gray-500">Sparse → Dense Biomass</span>
+                                    <div className="flex items-center gap-2 md:gap-3">
+                                        <div className="h-1.5 w-24 md:h-2.5 md:w-32 rounded-full bg-gradient-to-r from-[#a1662f] via-[#facc15] to-[#15803d] shadow-inner"></div>
+                                        <span className="text-[9px] md:text-[10px] font-bold text-gray-500">Sparse → Dense Biomass</span>
                                     </div>
                                 )}
                             </div>
