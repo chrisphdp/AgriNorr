@@ -1,6 +1,0 @@
-{
-  "name": "AgriNorr",
-  "description": "A minimalist dashboard application with sidebar navigation including Dashboard, Map, and Settings views.",
-  "requestFramePermissions": [],
-  "majorCapabilities": []
-}
