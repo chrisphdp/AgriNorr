@@ -19,7 +19,7 @@ interface SettingsContextType {
 const translations: Record<Language, Record<string, string>> = {
   en: {
     'nav.dashboard': 'Dashboard',
-    'nav.map': 'Field Map',
+    'nav.map': 'Add Field',
     'nav.globe': '3D Earth',
     'nav.ai': 'AI Assistant',
     'nav.yield': 'Yield Prediction',
@@ -31,7 +31,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   da: {
     'nav.dashboard': 'Instrumentbræt',
-    'nav.map': 'Markkort',
+    'nav.map': 'Tilføj mark',
     'nav.globe': '3D Jord',
     'nav.ai': 'AI Assistent',
     'nav.yield': 'Udbytte Forudsigelse',
@@ -43,7 +43,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   no: {
     'nav.dashboard': 'Dashbord',
-    'nav.map': 'Feltkart',
+    'nav.map': 'Legg til felt',
     'nav.globe': '3D Jord',
     'nav.ai': 'AI Assistent',
     'nav.yield': 'Avlingsprognose',
@@ -55,7 +55,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   sv: {
     'nav.dashboard': 'Instrumentpanel',
-    'nav.map': 'Fältkarta',
+    'nav.map': 'Lägg till fält',
     'nav.globe': '3D Jord',
     'nav.ai': 'AI Assistent',
     'nav.yield': 'Skördeprognos',

@@ -43,7 +43,9 @@ export const AiDiagnosis: React.FC = () => {
             const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : 'image/jpeg';
 
             // Fallbacks
-            const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : '') || ''; 
+            // Use ts-ignore to bypass the process not defined error if vite didn't replace it
+            // @ts-ignore
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : import.meta.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY) || '';
             
             if (!apiKey) {
                 throw new Error("Gemini API key is not configured.");

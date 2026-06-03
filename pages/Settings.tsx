@@ -198,17 +198,28 @@ export const Settings: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setRole('researcher')}
-                className={`px-4 py-2 text-sm font-medium border rounded-r-lg flex flex-1 items-center justify-center gap-2 transition-colors ${
+                className={`px-4 py-2 text-sm font-medium border-t border-b border-gray-200 flex flex-1 items-center justify-center gap-2 transition-colors ${
                   role === 'researcher' 
-                    ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 z-10' 
-                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400'
+                    ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 z-10 border-l border-r' 
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 border-l-0 border-r-0 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400'
                 }`}
               >
                 Researcher
               </button>
+              <button
+                type="button"
+                onClick={() => setRole('guest')}
+                className={`px-4 py-2 text-sm font-medium border rounded-r-lg flex flex-1 items-center justify-center gap-2 transition-colors ${
+                  role === 'guest' 
+                    ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 z-10' 
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 border-l-0'
+                }`}
+              >
+                Guest
+              </button>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Changes will apply on save. <strong>Administrator</strong> can edit fields. <strong>Operator/Researcher</strong> have read-only access.
+              Changes will apply on save. <strong>Administrator</strong> can edit fields. <strong>Operator/Researcher/Guest</strong> have read-only access.
             </p>
           </div>
         </div>

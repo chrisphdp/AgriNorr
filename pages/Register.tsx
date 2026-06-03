@@ -205,7 +205,7 @@ export const Register: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Account Type
               </label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 <label className={`cursor-pointer overflow-hidden border rounded-lg p-3 text-center transition-all ${
                   role === 'administrator' 
                     ? 'border-emerald-500 bg-emerald-50 shadow-sm ring-1 ring-emerald-500 text-emerald-900' 
@@ -220,7 +220,7 @@ export const Register: React.FC = () => {
                     onChange={() => setRole('administrator')}
                   />
                   <Users className={`mx-auto mb-1 ${role === 'administrator' ? 'text-emerald-600' : 'text-gray-400'}`} size={20} />
-                  <span className="block text-xs font-bold w-full uppercase mt-1 tracking-wide">Administrator</span>
+                  <span className="block text-xs font-bold w-full uppercase mt-1 tracking-wide truncate">Admin</span>
                 </label>
                 
                 <label className={`cursor-pointer overflow-hidden border rounded-lg p-3 text-center transition-all ${
@@ -237,7 +237,7 @@ export const Register: React.FC = () => {
                     onChange={() => setRole('operator')}
                   />
                   <HardHat className={`mx-auto mb-1 ${role === 'operator' ? 'text-emerald-600' : 'text-gray-400'}`} size={20} />
-                  <span className="block text-xs font-bold w-full uppercase mt-1 tracking-wide">Operator</span>
+                  <span className="block text-xs font-bold w-full uppercase mt-1 tracking-wide truncate">Operator</span>
                 </label>
                 
                 <label className={`cursor-pointer overflow-hidden border rounded-lg p-3 text-center transition-all ${
@@ -254,13 +254,31 @@ export const Register: React.FC = () => {
                     onChange={() => setRole('researcher')}
                   />
                   <Compass className={`mx-auto mb-1 ${role === 'researcher' ? 'text-emerald-600' : 'text-gray-400'}`} size={20} />
-                  <span className="block text-xs font-bold w-full uppercase mt-1 tracking-wide">Researcher</span>
+                  <span className="block text-xs font-bold w-full uppercase mt-1 tracking-wide truncate">Research</span>
+                </label>
+
+                <label className={`cursor-pointer overflow-hidden border rounded-lg p-3 text-center transition-all ${
+                  role === 'guest' 
+                    ? 'border-emerald-500 bg-emerald-50 shadow-sm ring-1 ring-emerald-500 text-emerald-900' 
+                    : 'border-gray-200 bg-white hover:border-emerald-200 text-gray-700'
+                }`}>
+                  <input 
+                    type="radio" 
+                    name="role" 
+                    value="guest" 
+                    className="sr-only" 
+                    checked={role === 'guest'}
+                    onChange={() => setRole('guest')}
+                  />
+                  <Users className={`mx-auto mb-1 ${role === 'guest' ? 'text-emerald-600' : 'text-gray-400'}`} size={20} />
+                  <span className="block text-xs font-bold w-full uppercase mt-1 tracking-wide truncate">Guest</span>
                 </label>
               </div>
               <p className="mt-2 text-xs text-gray-500">
                 {role === 'administrator' && "Administrators have full access to edit and configure farm boundaries, equipment, and user settings."}
                 {role === 'operator' && "Operators monitor tasks and field statistics with read-only access to most boundaries and fields."}
                 {role === 'researcher' && "Researchers can only view permitted fields and cannot edit parameters."}
+                {role === 'guest' && "Guests have restricted view-only access across the platform."}
               </p>
             </div>
 

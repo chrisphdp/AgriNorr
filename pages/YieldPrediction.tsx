@@ -113,7 +113,7 @@ export const YieldPrediction: React.FC = () => {
             <div className="flex flex-col gap-2">
                 <h1 className="text-3xl font-bold text-gray-900 border-l-[6px] border-emerald-600 pl-4">{t('nav.yield')}</h1>
                 <p className="text-gray-500 pl-5">
-                    Scientifically accurate crop yield estimation. This architecture runs a process-based crop model (DSSAT) to generate physiological markers (LAI, Biomass), then fuses these markers with in-season satellite features (NDVI, FAPAR) into a Deep Learning model (Long Short-Term Memory network) to correct biases and output the final yield.
+                    Estimate your crop yield.
                 </p>
             </div>
 
@@ -168,7 +168,7 @@ export const YieldPrediction: React.FC = () => {
                                     </div>
 
                                     <div className="mt-4 pt-4 border-t border-gray-100">
-                                        <label className="block text-sm font-bold text-gray-800 mb-2">Simulate Nitrogen Intervention (kg/ha)</label>
+                                        <label className="block text-sm font-bold text-gray-800 mb-2">Nitrogen Applied (kg/ha)</label>
                                         <input 
                                             type="number"
                                             className="w-full bg-white border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition"
@@ -177,7 +177,7 @@ export const YieldPrediction: React.FC = () => {
                                             min="0"
                                             max="500"
                                         />
-                                        <p className="text-xs text-gray-400 mt-1">Leave at 0 to evaluate strict baseline yield without fertilizer.</p>
+                                        <p className="text-xs text-gray-400 mt-1">Leave at 0 to evaluate yield without fertilizer.</p>
                                     </div>
                                 </div>
                             )}
@@ -189,7 +189,7 @@ export const YieldPrediction: React.FC = () => {
                             className="mt-8 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {loading ? <Loader2 className="animate-spin" size={20} /> : <Activity size={20} />}
-                            {loading ? 'Running Hybrid Modeler...' : 'Predict Yield'}
+                            {loading ? 'Predicting Yield...' : 'Predict Yield'}
                         </button>
                     </form>
                     
@@ -209,19 +209,19 @@ export const YieldPrediction: React.FC = () => {
                             <div className="font-mono text-sm flex flex-col items-center gap-3 w-80">
                                 <div className={`flex items-center gap-3 w-full transition-opacity duration-300 ${loadingStep >= 1 ? 'opacity-100' : 'opacity-30'}`}>
                                     {loadingStep > 1 ? <CheckCircle2 size={16} className="text-emerald-500" /> : (loadingStep === 1 ? <Loader2 size={16} className="animate-spin text-blue-500" /> : <div className="w-4 h-4 rounded-full border border-gray-300" />)}
-                                    <span className={loadingStep === 1 ? 'text-blue-600 font-medium' : ''}>[1] Ingesting ECMWF ERA5 Climate Data...</span>
+                                    <span className={loadingStep === 1 ? 'text-blue-600 font-medium' : ''}>[1] Collecting Weather Data...</span>
                                 </div>
                                 <div className={`flex items-center gap-3 w-full transition-opacity duration-300 ${loadingStep >= 2 ? 'opacity-100' : 'opacity-30'}`}>
                                     {loadingStep > 2 ? <CheckCircle2 size={16} className="text-emerald-500" /> : (loadingStep === 2 ? <Loader2 size={16} className="animate-spin text-blue-500" /> : <div className="w-4 h-4 rounded-full border border-gray-300" />)}
-                                    <span className={loadingStep === 2 ? 'text-blue-600 font-medium' : ''}>[2] Compiling DSSAT Process Model...</span>
+                                    <span className={loadingStep === 2 ? 'text-blue-600 font-medium' : ''}>[2] Analyzing Crop Growth...</span>
                                 </div>
                                 <div className={`flex items-center gap-3 w-full transition-opacity duration-300 ${loadingStep >= 3 ? 'opacity-100' : 'opacity-30'}`}>
                                     {loadingStep > 3 ? <CheckCircle2 size={16} className="text-emerald-500" /> : (loadingStep === 3 ? <Loader2 size={16} className="animate-spin text-blue-500" /> : <div className="w-4 h-4 rounded-full border border-gray-300" />)}
-                                    <span className={loadingStep === 3 ? 'text-blue-600 font-medium' : ''}>[3] Extracting Earth Engine RS Features...</span>
+                                    <span className={loadingStep === 3 ? 'text-blue-600 font-medium' : ''}>[3] Fetching Satellite Imagery...</span>
                                 </div>
                                 <div className={`flex items-center gap-3 w-full transition-opacity duration-300 ${loadingStep >= 4 ? 'opacity-100' : 'opacity-30'}`}>
                                     {loadingStep > 4 ? <CheckCircle2 size={16} className="text-emerald-500" /> : (loadingStep === 4 ? <Loader2 size={16} className="animate-spin text-blue-500" /> : <div className="w-4 h-4 rounded-full border border-gray-300" />)}
-                                    <span className={loadingStep === 4 ? 'text-blue-600 font-medium' : ''}>[4] Executing LSTM Bias Correction...</span>
+                                    <span className={loadingStep === 4 ? 'text-blue-600 font-medium' : ''}>[4] Calculating Final Prediction...</span>
                                 </div>
                             </div>
                         </div>
@@ -241,7 +241,7 @@ export const YieldPrediction: React.FC = () => {
                                 <div className="absolute top-0 right-0 p-32 opacity-10">
                                     <Sprout size={200} />
                                 </div>
-                                <h3 className="text-emerald-300 font-medium tracking-wide text-sm mb-2 uppercase">Neural-Corrected Final Yield</h3>
+                                <h3 className="text-emerald-300 font-medium tracking-wide text-sm mb-2 uppercase">Predicted Final Yield</h3>
                                 <div className="flex items-end gap-3 font-mono">
                                     <span className="text-6xl font-bold tracking-tight">{result.final_predicted_yield.toFixed(2)}</span>
                                     <span className="text-2xl text-emerald-200 mb-2">t/ha</span>
@@ -256,7 +256,7 @@ export const YieldPrediction: React.FC = () => {
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
                                     <div className="flex items-center gap-2 text-gray-700 font-semibold mb-4 border-b border-gray-100 pb-2">
-                                        <Database size={18} className="text-blue-600" /> Process-Based (DSSAT)
+                                        <Database size={18} className="text-blue-600" /> Growth Model
                                     </div>
                                     <div className="space-y-3 font-mono text-sm text-gray-600">
                                         <div className="flex justify-between">
@@ -276,7 +276,7 @@ export const YieldPrediction: React.FC = () => {
 
                                 <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
                                     <div className="flex items-center gap-2 text-gray-700 font-semibold mb-4 border-b border-gray-100 pb-2">
-                                        <AreaChart size={18} className="text-indigo-600" /> Deep Learning (LSTM)
+                                        <AreaChart size={18} className="text-indigo-600" /> Satellite Analysis
                                     </div>
                                     <div className="space-y-3 font-mono text-sm text-gray-600">
                                         <div className="flex justify-between">
@@ -288,7 +288,7 @@ export const YieldPrediction: React.FC = () => {
                                             <span className="font-medium text-gray-900">{result.satellite_fapar_mean.toFixed(3)}</span>
                                         </div>
                                         <div className="flex justify-between text-emerald-700">
-                                            <span>LSTM Bias Correction:</span>
+                                            <span>Adjustment:</span>
                                             <span className="font-medium font-bold">{result.ml_correction_factor > 0 ? '+' : ''}{(result.ml_correction_factor * 100).toFixed(1)}%</span>
                                         </div>
                                     </div>

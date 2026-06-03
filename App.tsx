@@ -24,7 +24,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }) => {
 
   if (loading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gray-50">
+      <div className="h-[100dvh] w-full flex items-center justify-center bg-gray-50">
         <Loader2 className="animate-spin text-emerald-800" size={40} />
       </div>
     );
@@ -37,7 +37,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }) => {
   const isGlobeView = location.pathname === '/globe';
 
   return (
-    <div className="flex h-screen w-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200 overflow-hidden">
+    <div className="flex h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200 overflow-hidden">
       {/* Sidebar Navigation */}
       <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 

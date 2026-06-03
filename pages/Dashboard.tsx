@@ -294,7 +294,7 @@ export const Dashboard: React.FC = () => {
                </div>
 
                {/* Market Overview */}
-               {profile?.role !== 'researcher' && (
+               {(profile?.role === 'administrator' || profile?.role === 'operator') && (
                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                    <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-4">Commodity Trends</h3>
                    <div className="space-y-4">
@@ -333,7 +333,7 @@ export const Dashboard: React.FC = () => {
                )}
             </div>
             
-            {profile?.role !== 'researcher' && (
+            {(profile?.role === 'administrator' || profile?.role === 'operator') && (
               <div className="bg-gradient-to-r from-emerald-800 to-teal-900 rounded-xl overflow-hidden shadow-lg border border-emerald-900 flex text-white relative">
                  <div className="p-8 z-10 w-2/3">
                     <h3 className="text-xl font-bold mb-3">Optimize Your Harvest</h3>
